@@ -30,6 +30,8 @@ import com.ortiz.campusgps.viewmodel.MapaViewModel
 @Composable
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
+    val lugares by vm.lugares.collectAsState()
+    val seleccionado by vm.seleccionado.collectAsState()
 
     val contexto = LocalContext.current
     val lanzador = rememberLauncherForActivityResult(
@@ -93,7 +95,13 @@ fun PantallaMapa(vm: MapaViewModel) {
                 is UbicacionUi.Error -> Text(e.mensaje, color = MaterialTheme.colorScheme.error)
             }
 
-            // TODO Paso 3: MapaUbicacion(..., modifier = Modifier.weight(1f))
+            // Paso 3: el mapa ocupa el espacio libre
+            MapaUbicacion(
+                estado = estado,
+                lugares = lugares,
+                seleccionado = seleccionado,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

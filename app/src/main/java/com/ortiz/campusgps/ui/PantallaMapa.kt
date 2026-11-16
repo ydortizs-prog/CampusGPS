@@ -1,5 +1,9 @@
 package com.ortiz.campusgps.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.ortiz.campusgps.model.UbicacionUi
 import com.ortiz.campusgps.viewmodel.MapaViewModel
 
@@ -25,9 +31,31 @@ import com.ortiz.campusgps.viewmodel.MapaViewModel
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
 
-    // TODO Paso 2: pedir el permiso con rememberLauncherForActivityResult(RequestMultiplePermissions())
+    val contexto = LocalContext.current
+    val lanzador = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { resultado ->
+        // Si concedió FINE o COARSE, buscamos; si no, la app sigue abierta con el mensaje
+        if (resultado.values.any { it }) vm.buscar() else vm.permisoDenegado()
+    }
+
     fun alPulsar() {
-        vm.buscar()
+        val tienePermiso = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ).any {
+            ContextCompat.checkSelfPermission(contexto, it) == PackageManager.PERMISSION_GRANTED
+        }
+        if (tienePermiso) {
+            vm.buscar()
+        } else {
+            lanzador.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
     }
 
     Scaffold(

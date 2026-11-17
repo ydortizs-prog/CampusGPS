@@ -34,6 +34,16 @@ fun MapaUbicacion(
         }
     }
 
+    // Paso 6: al seleccionar un lugar, la cámara viaja hasta él con zoom 17
+    LaunchedEffect(seleccionado) {
+        val lugar = lugares.firstOrNull { it.lugar.id == seleccionado }?.lugar
+        if (lugar != null) {
+            camara.animate(
+                CameraUpdateFactory.newLatLngZoom(LatLng(lugar.latitud, lugar.longitud), 17f)
+            )
+        }
+    }
+
     GoogleMap(modifier = modifier, cameraPositionState = camara) {
         // TODO 2: marcador "Estás aquí" solo si el estado es Lista
         if (estado is UbicacionUi.Lista) {
@@ -47,10 +57,15 @@ fun MapaUbicacion(
         // TODO 3 (Paso 4): un marcador azul por cada lugar del campus
         lugares.forEach { item ->
             key(item.lugar.id) {
+                val marcador = rememberUpdatedMarkerState(
+                    position = LatLng(item.lugar.latitud, item.lugar.longitud)
+                )
+                // El lugar seleccionado muestra su nombre en el mapa
+                LaunchedEffect(seleccionado) {
+                    if (seleccionado == item.lugar.id) marcador.showInfoWindow()
+                }
                 Marker(
-                    state = rememberUpdatedMarkerState(
-                        position = LatLng(item.lugar.latitud, item.lugar.longitud)
-                    ),
+                    state = marcador,
                     title = item.lugar.nombre,
                     snippet = item.lugar.categoria,
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)

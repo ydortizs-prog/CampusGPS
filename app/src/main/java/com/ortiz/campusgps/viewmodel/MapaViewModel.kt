@@ -58,7 +58,10 @@ class MapaViewModel(
         }
     }
 
-    // TODO Paso 6: fun seleccionar(id: Int?)
+    // Paso 6: guarda qué lugar tocó el usuario (null = ninguno)
+    fun seleccionar(id: Int?) {
+        _seleccionado.value = id
+    }
     // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 
     private fun mensajeDe(e: Throwable): String = when (e) {

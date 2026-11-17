@@ -23,6 +23,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,16 @@ fun PantallaMapa(vm: MapaViewModel) {
     ) { resultado ->
         // Si concedió FINE o COARSE, buscamos; si no, la app sigue abierta con el mensaje
         if (resultado.values.any { it }) vm.buscar() else vm.permisoDenegado()
+    }
+
+    // Mejora IA 3: se vuelve a revisar el permiso cada vez que cambia el estado
+    val permisoConcedido = remember(estado) {
+        listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ).any {
+            ContextCompat.checkSelfPermission(contexto, it) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
     fun alPulsar() {
@@ -152,7 +163,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                 seleccionado = seleccionado,
                 modifier = Modifier.weight(1f),
                 masCercano = masCercano,
-                radio = radio
+                radio = radio,
+                permisoConcedido = permisoConcedido
             )
 
             // Paso 7: botón con borde para ir al lugar más cercano

@@ -1,13 +1,18 @@
 package com.ortiz.campusgps.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
+import com.ortiz.campusgps.R
 import androidx.compose.ui.graphics.Color
 import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
@@ -52,11 +57,21 @@ fun MapaUbicacion(
         }
     }
 
+    // Mejora IA 4: estilo oscuro del mapa cuando el tema del sistema es oscuro
+    val temaOscuro = isSystemInDarkTheme()
+    val contexto = LocalContext.current
+    val estiloMapa = remember(temaOscuro) {
+        if (temaOscuro) MapStyleOptions.loadRawResourceStyle(contexto, R.raw.mapa_oscuro) else null
+    }
+
     // Mejora IA 3: punto azul nativo y botón "mi ubicación", solo si hay permiso
     GoogleMap(
         modifier = modifier,
         cameraPositionState = camara,
-        properties = MapProperties(isMyLocationEnabled = permisoConcedido),
+        properties = MapProperties(
+            isMyLocationEnabled = permisoConcedido,
+            mapStyleOptions = estiloMapa
+        ),
         uiSettings = MapUiSettings(myLocationButtonEnabled = permisoConcedido)
     ) {
         // TODO 2: marcador "Estás aquí" solo si el estado es Lista

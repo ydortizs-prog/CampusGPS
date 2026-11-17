@@ -50,6 +50,18 @@ class MapaViewModel(
             if (cat == null) lista else lista.filter { it.lugar.categoria == cat }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
 
+    // Mejora IA 2: radio de cercanía en metros (100, 200 o 500)
+    val radios: List<Int> = listOf(100, 200, 500)
+
+    private val _radio = MutableStateFlow(200)
+    val radio: StateFlow<Int> = _radio.asStateFlow()
+
+    // Ids de los lugares que están dentro del radio (el cálculo se queda en el ViewModel)
+    val dentroDelRadio: StateFlow<Set<Int>> =
+        combine(lugaresVisibles, _radio) { lista, r ->
+            lista.filter { it.metros != null && it.metros <= r }.map { it.lugar.id }.toSet()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     // Paso 7: el primero de la lista con distancia calculada; null si aún no hay ubicación
     // (Mejora IA 1: se calcula sobre los lugares visibles del filtro)
     val masCercano: StateFlow<Lugar?> = lugaresVisibles.map { lista ->
@@ -92,6 +104,11 @@ class MapaViewModel(
         _lugares.value.forEach {
             Log.d("CampusGPS", "${it.lugar.nombre}: ${formatearDistancia(it.metros ?: 0f)}")
         }
+    }
+
+    // Mejora IA 2: cambia el radio de cercanía
+    fun cambiarRadio(metros: Int) {
+        _radio.value = metros
     }
 
     // Mejora IA 1: cambia la categoría; si el lugar seleccionado queda oculto, se deselecciona

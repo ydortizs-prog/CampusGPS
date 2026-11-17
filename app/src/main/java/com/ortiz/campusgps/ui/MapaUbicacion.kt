@@ -8,6 +8,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import androidx.compose.ui.graphics.Color
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -22,7 +24,8 @@ fun MapaUbicacion(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
     modifier: Modifier = Modifier,
-    masCercano: Lugar? = null
+    masCercano: Lugar? = null,
+    radio: Int? = null
 ) {
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(-12.0464, -77.0428), 12f)
@@ -54,6 +57,16 @@ fun MapaUbicacion(
                     position = LatLng(estado.posicion.latitud, estado.posicion.longitud)
                 ),
                 title = "Estás aquí"
+            )
+        }
+        // Mejora IA 2: círculo del radio de cercanía alrededor de tu posición
+        if (estado is UbicacionUi.Lista && radio != null) {
+            Circle(
+                center = LatLng(estado.posicion.latitud, estado.posicion.longitud),
+                radius = radio.toDouble(),
+                strokeColor = Color(0xFF1E88E5),
+                strokeWidth = 4f,
+                fillColor = Color(0x331E88E5)
             )
         }
         // TODO 3 (Paso 4): un marcador azul por cada lugar del campus

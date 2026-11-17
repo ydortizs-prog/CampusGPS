@@ -24,6 +24,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +41,8 @@ fun PantallaMapa(vm: MapaViewModel) {
     // Mejora IA 1: el mapa y la lista muestran solo los lugares del filtro
     val lugares by vm.lugaresVisibles.collectAsState()
     val categoria by vm.categoria.collectAsState()
+    val radio by vm.radio.collectAsState()
+    val dentroDelRadio by vm.dentroDelRadio.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
 
@@ -126,13 +129,30 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
             }
 
+            // Mejora IA 2: selector del radio de cercanía
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Radio:")
+                vm.radios.forEach { r ->
+                    FilterChip(
+                        selected = radio == r,
+                        onClick = { vm.cambiarRadio(r) },
+                        label = { Text("$r m") }
+                    )
+                }
+            }
+
             // Paso 3: el mapa ocupa el espacio libre
             MapaUbicacion(
                 estado = estado,
                 lugares = lugares,
                 seleccionado = seleccionado,
                 modifier = Modifier.weight(1f),
-                masCercano = masCercano
+                masCercano = masCercano,
+                radio = radio
             )
 
             // Paso 7: botón con borde para ir al lugar más cercano
@@ -153,6 +173,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 lugares = lugares,
                 seleccionado = seleccionado,
                 onClick = { vm.seleccionar(it) },
+                dentroDelRadio = dentroDelRadio,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)

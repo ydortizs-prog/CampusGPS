@@ -34,7 +34,8 @@ fun ListaLugares(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
     onClick: (id: Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dentroDelRadio: Set<Int> = emptySet()
 ) {
     LazyColumn(
         modifier = modifier,
@@ -76,10 +77,20 @@ fun ListaLugares(
                             color = Color.Gray
                         )
                     }
-                    Text(
-                        text = item.metros?.let { formatearDistancia(it) } ?: "Sin calcular",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = item.metros?.let { formatearDistancia(it) } ?: "Sin calcular",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        // Mejora IA 2: marca los lugares dentro del radio elegido
+                        if (item.lugar.id in dentroDelRadio) {
+                            Text(
+                                "Dentro del radio",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF2E7D32)
+                            )
+                        }
+                    }
                 }
             }
         }

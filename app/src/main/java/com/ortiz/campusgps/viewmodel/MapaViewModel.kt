@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -37,8 +38,21 @@ class MapaViewModel(
     private val _seleccionado = MutableStateFlow<Int?>(null)
     val seleccionado: StateFlow<Int?> = _seleccionado.asStateFlow()
 
+    // Mejora IA 1: filtro por categoría (null = todas)
+    val categorias: List<String> = lugaresRepo.obtenerLugares().map { it.categoria }.distinct()
+
+    private val _categoria = MutableStateFlow<String?>(null)
+    val categoria: StateFlow<String?> = _categoria.asStateFlow()
+
+    // Lugares que se muestran en el mapa y en la lista según la categoría elegida
+    val lugaresVisibles: StateFlow<List<LugarConDistancia>> =
+        combine(_lugares, _categoria) { lista, cat ->
+            if (cat == null) lista else lista.filter { it.lugar.categoria == cat }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
+
     // Paso 7: el primero de la lista con distancia calculada; null si aún no hay ubicación
-    val masCercano: StateFlow<Lugar?> = lugares.map { lista ->
+    // (Mejora IA 1: se calcula sobre los lugares visibles del filtro)
+    val masCercano: StateFlow<Lugar?> = lugaresVisibles.map { lista ->
         lista.firstOrNull { it.metros != null }?.lugar
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -78,6 +92,15 @@ class MapaViewModel(
         _lugares.value.forEach {
             Log.d("CampusGPS", "${it.lugar.nombre}: ${formatearDistancia(it.metros ?: 0f)}")
         }
+    }
+
+    // Mejora IA 1: cambia la categoría; si el lugar seleccionado queda oculto, se deselecciona
+    fun filtrarCategoria(cat: String?) {
+        _categoria.value = cat
+        val seleccionadoOculto = cat != null && _lugares.value.any {
+            it.lugar.id == _seleccionado.value && it.lugar.categoria != cat
+        }
+        if (seleccionadoOculto) _seleccionado.value = null
     }
 
     // Paso 6: guarda qué lugar tocó el usuario (null = ninguno)

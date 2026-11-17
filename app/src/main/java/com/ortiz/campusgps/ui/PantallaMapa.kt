@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -22,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -33,7 +37,9 @@ import com.ortiz.campusgps.viewmodel.MapaViewModel
 @Composable
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
-    val lugares by vm.lugares.collectAsState()
+    // Mejora IA 1: el mapa y la lista muestran solo los lugares del filtro
+    val lugares by vm.lugaresVisibles.collectAsState()
+    val categoria by vm.categoria.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
 
@@ -97,6 +103,27 @@ fun PantallaMapa(vm: MapaViewModel) {
                     "Latitud: ${e.posicion.latitud}\nLongitud: ${e.posicion.longitud}"
                 )
                 is UbicacionUi.Error -> MensajeError(error = e, onReintentar = { alPulsar() })
+            }
+
+            // Mejora IA 1: chips para filtrar por categoría
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = categoria == null,
+                    onClick = { vm.filtrarCategoria(null) },
+                    label = { Text("Todos") }
+                )
+                vm.categorias.forEach { cat ->
+                    FilterChip(
+                        selected = categoria == cat,
+                        onClick = { vm.filtrarCategoria(cat) },
+                        label = { Text(cat) }
+                    )
+                }
             }
 
             // Paso 3: el mapa ocupa el espacio libre

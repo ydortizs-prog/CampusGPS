@@ -96,7 +96,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 is UbicacionUi.Lista -> Text(
                     "Latitud: ${e.posicion.latitud}\nLongitud: ${e.posicion.longitud}"
                 )
-                is UbicacionUi.Error -> Text(e.mensaje, color = MaterialTheme.colorScheme.error)
+                is UbicacionUi.Error -> MensajeError(error = e, onReintentar = { alPulsar() })
             }
 
             // Paso 3: el mapa ocupa el espacio libre
